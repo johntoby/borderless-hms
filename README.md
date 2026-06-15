@@ -8,7 +8,7 @@ A full-stack, cloud-native hospital management system built with Python FastAPI 
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Features](#features)
 - [Tech Stack](#tech-stack)
