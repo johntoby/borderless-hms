@@ -106,7 +106,7 @@ cd borderless-hms
 
 ---
 
-## 💻 Local Development
+##  Local Development
 
 1. **Create a `.env` file** from the example:
 
@@ -210,7 +210,7 @@ locust -f locustfile.py --host=http://localhost:8080
 
 Open http://localhost:8089 to configure and start the test.
 
-**Production target:** 500 concurrent users with auto-scaling up to 20 ECS tasks.
+**Production target:** 50,000 concurrent users with auto-scaling up to 20 ECS tasks.
 
 ---
 
