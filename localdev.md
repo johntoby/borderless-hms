@@ -14,25 +14,19 @@ This guide documents the steps to run the Borderless Hospital Management System 
 
 ## 1. Create the `.env` File
 
-Create a `.env` file in the project root with the following content:
+Copy the template and fill in real local values:
 
-```env
-POSTGRES_SERVER=postgres
-POSTGRES_PORT=5432
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=H0sp1talDev2024!
-POSTGRES_DB=hospital_db
-POSTGRES_SSL_MODE=disable
-SECRET_KEY=local-dev-secret-key-change-in-production
-ENVIRONMENT=development
-DEBUG=true
-BACKEND_CORS_ORIGINS=["http://localhost:3000","http://localhost:80","http://localhost:8080"]
+```bash
+cp .env.example .env
 ```
 
-> Key differences from `.env.example`:
-> - `POSTGRES_SERVER` must be `postgres` (the docker-compose service name, not an RDS endpoint)
-> - `POSTGRES_SSL_MODE` must be `disable`
-> - No AWS credentials needed
+Set at least:
+
+- `POSTGRES_PASSWORD` — any strong local password (used both to initialise the Postgres container and by the backend)
+- `SECRET_KEY` — at least 32 random characters, e.g. `openssl rand -hex 32` (the backend refuses to start with a weak or placeholder key)
+
+> `docker-compose.yml` overrides `POSTGRES_SERVER=postgres` and `POSTGRES_SSL_MODE=disable` for the backend,
+> so the RDS values in `.env.example` do not need to change for local use. No AWS credentials are needed.
 
 ---
 
@@ -45,7 +39,7 @@ docker compose up --build
 This builds and starts:
 - `hms-postgres` — PostgreSQL 16 database
 - `hms-backend` — FastAPI backend on port 8000
-- `hms-frontend` — React frontend on port 80
+- `hms-frontend` — React frontend (Nginx) on port 3000
 - `hms-proxy` — Nginx reverse proxy on port 8080
 
 ### Access the App
@@ -115,7 +109,7 @@ A pgAdmin service is included for browsing the database via a GUI.
 ### Start pgAdmin
 
 ```bash
-docker compose up -d pgadmin
+docker compose --profile tools up -d pgadmin
 ```
 
 ### Access pgAdmin
@@ -126,6 +120,8 @@ Open http://localhost:5050
 |-------|-------|
 | Email | admin@admin.com |
 | Password | admin |
+
+> Defaults for local use only; override with `PGADMIN_DEFAULT_EMAIL` / `PGADMIN_DEFAULT_PASSWORD` in your shell or `.env`.
 
 ### Connect to the Database
 
@@ -139,7 +135,7 @@ Open http://localhost:5050
 | Port | 5432 |
 | Database | hospital_db |
 | Username | postgres |
-| Password | H0sp1talDev2024! |
+| Password | the `POSTGRES_PASSWORD` from your `.env` |
 
 ### Viewing Table Data
 

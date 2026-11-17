@@ -1,0 +1,77 @@
+# Local development stack for Borderless HMS.
+#
+#   cp .env.example .env   # then set POSTGRES_PASSWORD and SECRET_KEY (openssl rand -hex 32)
+#   docker compose up --build
+#
+# App (via Nginx reverse proxy): http://localhost:8080
+# API docs:                      http://localhost:8000/api/v1/docs
+# Optional pgAdmin:              docker compose --profile tools up -d pgadmin  -> http://localhost:5050
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: hms-postgres
+    env_file: .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    container_name: hms-backend
+    env_file: .env
+    environment:
+      # Local overrides: talk to the compose Postgres service without TLS,
+      # regardless of the RDS values in .env.
+      POSTGRES_SERVER: postgres
+      POSTGRES_SSL_MODE: disable
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8000:8000"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: /api/v1
+    container_name: hms-frontend
+    depends_on:
+      - backend
+    ports:
+      - "127.0.0.1:3000:80"
+    restart: unless-stopped
+
+  proxy:
+    image: nginx:1.25-alpine
+    container_name: hms-proxy
+    volumes:
+      - ./nginx-proxy.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+      - frontend
+    ports:
+      - "127.0.0.1:8080:80"
+    restart: unless-stopped
+
+  pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: hms-pgadmin
+    profiles: ["tools"]
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@admin.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+    depends_on:
+      - postgres
+    ports:
+      - "127.0.0.1:5050:80"
+
+volumes:
+  postgres_data:
