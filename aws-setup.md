@@ -2,6 +2,8 @@
 
 This guide walks through deploying the Borderless Hospital Management System to AWS using Terraform and ECS Fargate.
 
+> **Note:** the Terraform configuration (`infrastructure/`) and the `.github/workflows/deploy.yml` pipeline referenced in this guide are not currently committed to this repository. The steps below document how the production environment was provisioned.
+
 ---
 
 ## Architecture Overview
@@ -71,8 +73,8 @@ project_name = "borderless-hms"
 environment  = "production"
 
 # Generate with: openssl rand -hex 32
-postgres_password = "YourStrongPassword@2024!"
-jwt_secret_key    = "your-64-char-hex-string-here" [ run this command to generate it: openssl rand -hex 32]
+postgres_password = "<strong-password>"
+jwt_secret_key    = "<output of: openssl rand -hex 32>"
 
 # Optional: set to false to save ~$50/month for non-production
 rds_multi_az = true
@@ -117,7 +119,7 @@ terraform output backend_ecr_repository_url
 
 ```bash
 aws ecr get-login-password --region us-east-1 | \
-  docker login --username AWS --password-stdin 266735814791.dkr.ecr.us-east-1.amazonaws.com
+  docker login --username AWS --password-stdin <ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com
 ```
 
 Replace `<ACCOUNT_ID>` with your AWS account ID (from `aws sts get-caller-identity`).
