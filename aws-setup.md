@@ -230,11 +230,7 @@ Both services should show `runningCount: 2` and `status: ACTIVE`.
 
 ### Open the app
 
-Navigate to the ALB DNS URL in your browser. Login with:
-
-| Username | Password |
-|----------|----------|
-| admin | Admin@12345 |
+Navigate to the ALB DNS URL in your browser and log in as `admin` with the password you set in `FIRST_ADMIN_PASSWORD` (stored in AWS Secrets Manager and injected into the backend task definition). With `ENVIRONMENT=production`, no admin is created unless this variable is set.
 
 ---
 

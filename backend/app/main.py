@@ -1,4 +1,5 @@
 import datetime
+import os
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
@@ -21,14 +22,19 @@ async def lifespan(app: FastAPI):
     db = SessionLocal()
     try:
         admin = db.query(User).filter(User.is_superuser == True).first()
-        if not admin:
+        # Demo password is only allowed outside production; production must set
+        # FIRST_ADMIN_PASSWORD (e.g. from AWS Secrets Manager via the ECS task definition).
+        admin_password = os.getenv("FIRST_ADMIN_PASSWORD")
+        if not admin_password and settings.ENVIRONMENT.lower() != "production":
+            admin_password = "Admin@12345"
+        if not admin and admin_password:
             default_admin = User(
                 username="admin",
                 email="admin@borderlesshospital.com",
                 first_name="System",
                 last_name="Admin",
                 role=UserRoleEnum.admin,
-                hashed_password=get_password_hash("Admin@12345"),
+                hashed_password=get_password_hash(admin_password),
                 is_superuser=True,
                 is_active=True,
             )
